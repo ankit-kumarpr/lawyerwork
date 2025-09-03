@@ -45,7 +45,7 @@ const useLawyerData = () => {
         if (!token) throw new Error("No authentication token found");
 
         const profileRes = await axios.get(
-          "http://localhost:4000/lawapi/auth/profile",
+          "https://lawyerwork.onrender.com/lawapi/auth/profile",
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -218,7 +218,7 @@ const LawyerDashboard = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:4000/lawapi/common/bookings/${bookingId}`,
+        `https://lawyerwork.onrender.com/lawapi/common/bookings/${bookingId}`,
         {
           method: "PUT",
           headers: {
@@ -334,7 +334,10 @@ const LawyerDashboard = () => {
     // Fallback: some servers might mistakenly send chat as "incoming-call"
     const handleIncomingCallForChat = (data) => {
       if ((data?.mode || "").toString().trim().toLowerCase() !== "chat") return;
-      console.log("📥 Incoming-call received for chat; treating as booking-notification:", data);
+      console.log(
+        "📥 Incoming-call received for chat; treating as booking-notification:",
+        data
+      );
       handleBookingNotification({
         bookingId: data.bookingId,
         userName: data.userName,

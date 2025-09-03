@@ -52,7 +52,8 @@ const PaymentModal = ({
   };
 
   // Get total amount directly from lawyer's consultation fee
-  const total = serviceDetails[serviceType]?.price || lawyer?.consultation_fees || 10;
+  const total =
+    serviceDetails[serviceType]?.price || lawyer?.consultation_fees || 10;
 
   // Start/stop call timer
   useEffect(() => {
@@ -79,7 +80,9 @@ const PaymentModal = ({
   const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   // Initialize Agora client
@@ -106,7 +109,12 @@ const PaymentModal = ({
     const handleUserPublished = async (user, mediaType) => {
       try {
         await agoraClient.subscribe(user, mediaType);
-        console.log("✅ User subscribed to remote media:", mediaType, "from user:", user.uid);
+        console.log(
+          "✅ User subscribed to remote media:",
+          mediaType,
+          "from user:",
+          user.uid
+        );
 
         if (mediaType === "video") {
           const remoteVideoContainer = document.getElementById(
@@ -114,15 +122,15 @@ const PaymentModal = ({
           );
           if (remoteVideoContainer) {
             // Clear any existing content
-            remoteVideoContainer.innerHTML = '';
-            
+            remoteVideoContainer.innerHTML = "";
+
             // Create a new video element for the remote user
-            const videoElement = document.createElement('div');
+            const videoElement = document.createElement("div");
             videoElement.id = `remote-video-${user.uid}`;
-            videoElement.style.width = '100%';
-            videoElement.style.height = '100%';
+            videoElement.style.width = "100%";
+            videoElement.style.height = "100%";
             remoteVideoContainer.appendChild(videoElement);
-            
+
             // Play the remote video
             user.videoTrack.play(`remote-video-${user.uid}`);
             console.log("✅ Remote video track playing for user:", user.uid);
@@ -170,7 +178,12 @@ const PaymentModal = ({
 
     // Add listener for when user publishes their own tracks
     const handleUserPublish = (user, mediaType) => {
-      console.log("🎯 User published their own track:", mediaType, "UID:", user.uid);
+      console.log(
+        "🎯 User published their own track:",
+        mediaType,
+        "UID:",
+        user.uid
+      );
     };
 
     agoraClient.on("user-published", handleUserPublished);
@@ -191,7 +204,9 @@ const PaymentModal = ({
   // Effect to handle local video display when tracks change
   useEffect(() => {
     if (localTracks.length > 0 && serviceType === "video") {
-      const videoTrack = localTracks.find(track => track.trackMediaType === 'video');
+      const videoTrack = localTracks.find(
+        (track) => track.trackMediaType === "video"
+      );
       if (videoTrack) {
         // Wait for DOM to be ready and then play local video
         const timer = setTimeout(() => {
@@ -217,9 +232,11 @@ const PaymentModal = ({
   useEffect(() => {
     if (isInCall && localTracks.length > 0 && serviceType === "video") {
       console.log("🔍 Ensuring video tracks are published...");
-      
+
       // Force republish video tracks if needed
-      const videoTrack = localTracks.find(track => track.trackMediaType === 'video');
+      const videoTrack = localTracks.find(
+        (track) => track.trackMediaType === "video"
+      );
       if (videoTrack && !videoTrack.enabled) {
         videoTrack.setEnabled(true);
         console.log("✅ Video track re-enabled");
@@ -231,19 +248,24 @@ const PaymentModal = ({
   useEffect(() => {
     if (Object.keys(remoteUsers).length > 0) {
       console.log("🔍 Remote users detected:", Object.keys(remoteUsers));
-      
+
       // Ensure our video is published for remote users
       if (localTracks.length > 0 && serviceType === "video") {
-        const videoTrack = localTracks.find(track => track.trackMediaType === 'video');
+        const videoTrack = localTracks.find(
+          (track) => track.trackMediaType === "video"
+        );
         if (videoTrack) {
           console.log("✅ Video track available for remote users");
           // Force republish if needed
           if (agoraClient && videoTrack.enabled) {
-            agoraClient.publish([videoTrack]).then(() => {
-              console.log("✅ Video track republished for remote users");
-            }).catch(err => {
-              console.error("❌ Error republishing video:", err);
-            });
+            agoraClient
+              .publish([videoTrack])
+              .then(() => {
+                console.log("✅ Video track republished for remote users");
+              })
+              .catch((err) => {
+                console.error("❌ Error republishing video:", err);
+              });
           }
         }
       }
@@ -274,7 +296,7 @@ const PaymentModal = ({
         appId: agoraData.appId,
         channelName: agoraData.channelName,
         uid: agoraData.uid,
-        serviceType
+        serviceType,
       });
 
       // Create local tracks based on call type
@@ -333,7 +355,6 @@ const PaymentModal = ({
             console.error("❌ Local video element not found");
           }
         }, 500);
-
       } else {
         // For audio calls, publish only audio
         await agoraClient.publish([localAudioTrack]);
@@ -341,13 +362,14 @@ const PaymentModal = ({
       }
 
       // Store local tracks for cleanup
-      const tracks = [localAudioTrack, localVideoTrack].filter((track) => track !== null);
+      const tracks = [localAudioTrack, localVideoTrack].filter(
+        (track) => track !== null
+      );
       setLocalTracks(tracks);
       console.log(`✅ Published ${tracks.length} tracks`);
 
       // Update call status
       setCallStatus("Waiting for lawyer to join...");
-
     } catch (error) {
       console.error("❌ User failed to join channel:", error);
       setCallStatus("Connection failed");
@@ -386,11 +408,13 @@ const PaymentModal = ({
   // Handle mute/unmute audio
   const toggleAudio = () => {
     if (localTracks.length > 0) {
-      const audioTrack = localTracks.find(track => track.trackMediaType === 'audio');
+      const audioTrack = localTracks.find(
+        (track) => track.trackMediaType === "audio"
+      );
       if (audioTrack) {
         const newState = !audioTrack.enabled;
         audioTrack.setEnabled(newState);
-        console.log(`🎤 Audio ${newState ? 'enabled' : 'disabled'}`);
+        console.log(`🎤 Audio ${newState ? "enabled" : "disabled"}`);
       }
     }
   };
@@ -398,24 +422,29 @@ const PaymentModal = ({
   // Handle video on/off
   const toggleVideo = () => {
     if (localTracks.length > 0) {
-      const videoTrack = localTracks.find(track => track.trackMediaType === 'video');
+      const videoTrack = localTracks.find(
+        (track) => track.trackMediaType === "video"
+      );
       if (videoTrack) {
         const newState = !videoTrack.enabled;
         videoTrack.setEnabled(newState);
-        console.log(`📹 Video ${newState ? 'enabled' : 'disabled'}`);
+        console.log(`📹 Video ${newState ? "enabled" : "disabled"}`);
       }
     }
   };
-  
 
   // Get current audio/video states
   const getAudioState = () => {
-    const audioTrack = localTracks.find(track => track.trackMediaType === 'audio');
+    const audioTrack = localTracks.find(
+      (track) => track.trackMediaType === "audio"
+    );
     return audioTrack ? audioTrack.enabled : true;
   };
 
   const getVideoState = () => {
-    const videoTrack = localTracks.find(track => track.trackMediaType === 'video');
+    const videoTrack = localTracks.find(
+      (track) => track.trackMediaType === "video"
+    );
     return videoTrack ? videoTrack.enabled : true;
   };
 
@@ -436,7 +465,7 @@ const PaymentModal = ({
 
     try {
       const verifyRes = await fetch(
-        "http://localhost:4000/lawapi/common/paymentverify",
+        "https://lawyerwork.onrender.com/lawapi/common/paymentverify",
         {
           method: "POST",
           headers: {
@@ -512,7 +541,10 @@ const PaymentModal = ({
           socket.emit("join-user", userData._id);
           // Lawyer joins rooms using their public lawyerId (e.g., "Lawyer046"),
           // not the Mongo ObjectId. Ensure we target that room for notifications.
-          socket.emit("join-lawyer", lawyer?.lawyerId || verifyData.booking.lawyerId);
+          socket.emit(
+            "join-lawyer",
+            lawyer?.lawyerId || verifyData.booking.lawyerId
+          );
           socket.emit("join-booking", bookingId);
 
           // Send booking notification
@@ -553,8 +585,10 @@ const PaymentModal = ({
         // Show success message and automatically proceed to video call
         if (serviceType === "video" || serviceType === "call") {
           // Don't close the modal, let it show the video call UI
-          console.log("🎉 Payment successful! Video call UI will appear automatically.");
-          
+          console.log(
+            "🎉 Payment successful! Video call UI will appear automatically."
+          );
+
           // Show success notification
           if (window.Swal) {
             window.Swal.fire({
@@ -564,7 +598,7 @@ const PaymentModal = ({
               timer: 2000,
               showConfirmButton: false,
               toast: true,
-              position: "top-end"
+              position: "top-end",
             });
           }
         }
@@ -584,7 +618,7 @@ const PaymentModal = ({
 
     try {
       const orderRes = await fetch(
-        "http://localhost:4000/lawapi/common/createorder",
+        "https://lawyerwork.onrender.com/lawapi/common/createorder",
         {
           method: "POST",
           headers: {
@@ -643,12 +677,24 @@ const PaymentModal = ({
   // Render video call UI in modal
   const renderVideoCallUI = () => {
     return (
-      <Modal show={internalShow} onHide={handleHide} centered size="lg" className="call-modal">
+      <Modal
+        show={internalShow}
+        onHide={handleHide}
+        centered
+        size="lg"
+        className="call-modal"
+      >
         <Modal.Header className="call-header">
           <div className="d-flex align-items-center w-100">
-            <div className={`status-indicator ${callStatus === "Connected" ? "connected" : "connecting"}`}></div>
+            <div
+              className={`status-indicator ${
+                callStatus === "Connected" ? "connected" : "connecting"
+              }`}
+            ></div>
             <div className="ms-2 flex-grow-1">
-              <Modal.Title className="call-title">Video Consultation</Modal.Title>
+              <Modal.Title className="call-title">
+                Video Consultation
+              </Modal.Title>
               <div className="call-subtitle">with {lawyer?.name}</div>
             </div>
             <div className="call-duration">{formatDuration(callDuration)}</div>
@@ -686,21 +732,27 @@ const PaymentModal = ({
             {/* Call controls */}
             <div className="call-controls">
               <div className="controls-container">
-                <Button 
-                  className={`control-btn ${getAudioState() ? '' : 'muted'}`}
+                <Button
+                  className={`control-btn ${getAudioState() ? "" : "muted"}`}
                   onClick={toggleAudio}
                   size="sm"
                 >
-                  <i className={`fas fa-microphone${getAudioState() ? '' : '-slash'}`}></i>
+                  <i
+                    className={`fas fa-microphone${
+                      getAudioState() ? "" : "-slash"
+                    }`}
+                  ></i>
                 </Button>
-                <Button 
-                  className={`control-btn ${getVideoState() ? '' : 'muted'}`}
+                <Button
+                  className={`control-btn ${getVideoState() ? "" : "muted"}`}
                   onClick={toggleVideo}
                   size="sm"
                 >
-                  <i className={`fas fa-video${getVideoState() ? '' : '-slash'}`}></i>
+                  <i
+                    className={`fas fa-video${getVideoState() ? "" : "-slash"}`}
+                  ></i>
                 </Button>
-                <Button 
+                <Button
                   className="control-btn end-call"
                   onClick={leaveChannel}
                   size="sm"
@@ -715,7 +767,11 @@ const PaymentModal = ({
           <div className="call-info-section p-3 border-top">
             <div className="d-flex align-items-center">
               <img
-                src={lawyer?.lawyerImage ? `http://localhost:4000${lawyer.lawyerImage}` : "/logo.png"}
+                src={
+                  lawyer?.lawyerImage
+                    ? `https://lawyerwork.onrender.com${lawyer.lawyerImage}`
+                    : "/logo.png"
+                }
                 alt={lawyer?.name}
                 className="lawyer-avatar-sm me-3"
               />
@@ -723,7 +779,11 @@ const PaymentModal = ({
                 <h6 className="mb-0">{lawyer?.name}</h6>
                 <small className="text-muted">{lawyer?.specialization}</small>
               </div>
-              <div className={`status-badge ${callStatus === "Connected" ? 'connected' : 'connecting'}`}>
+              <div
+                className={`status-badge ${
+                  callStatus === "Connected" ? "connected" : "connecting"
+                }`}
+              >
                 {callStatus}
               </div>
             </div>
@@ -736,12 +796,24 @@ const PaymentModal = ({
   // Render audio call UI in modal
   const renderAudioCallUI = () => {
     return (
-      <Modal show={internalShow} onHide={handleHide} centered size="md" className="call-modal">
+      <Modal
+        show={internalShow}
+        onHide={handleHide}
+        centered
+        size="md"
+        className="call-modal"
+      >
         <Modal.Header className="call-header">
           <div className="d-flex align-items-center w-100">
-            <div className={`status-indicator ${callStatus === "Connected" ? "connected" : "connecting"}`}></div>
+            <div
+              className={`status-indicator ${
+                callStatus === "Connected" ? "connected" : "connecting"
+              }`}
+            ></div>
             <div className="ms-2 flex-grow-1">
-              <Modal.Title className="call-title">Audio Consultation</Modal.Title>
+              <Modal.Title className="call-title">
+                Audio Consultation
+              </Modal.Title>
               <div className="call-subtitle">with {lawyer?.name}</div>
             </div>
             <div className="call-duration">{formatDuration(callDuration)}</div>
@@ -753,17 +825,25 @@ const PaymentModal = ({
             <div className="audio-avatar mb-4">
               <i className="fas fa-user"></i>
             </div>
-            
+
             <h5>{lawyer?.name}</h5>
             <p className="text-muted mb-4">{lawyer?.specialization}</p>
-            
-            <div className={`status-badge-lg ${callStatus === "Connected" ? 'connected' : 'connecting'} mb-4`}>
+
+            <div
+              className={`status-badge-lg ${
+                callStatus === "Connected" ? "connected" : "connecting"
+              } mb-4`}
+            >
               {callStatus}
             </div>
-            
+
             {callStatus === "Connecting..." && (
               <div className="mt-3">
-                <Spinner animation="border" variant="primary" className="mb-2" />
+                <Spinner
+                  animation="border"
+                  variant="primary"
+                  className="mb-2"
+                />
                 <p>Connecting to lawyer...</p>
               </div>
             )}
@@ -771,14 +851,18 @@ const PaymentModal = ({
             {/* Call controls */}
             <div className="call-controls mt-4">
               <div className="controls-container justify-content-center">
-                <Button 
-                  className={`control-btn ${getAudioState() ? '' : 'muted'}`}
+                <Button
+                  className={`control-btn ${getAudioState() ? "" : "muted"}`}
                   onClick={toggleAudio}
                   size="sm"
                 >
-                  <i className={`fas fa-microphone${getAudioState() ? '' : '-slash'}`}></i>
+                  <i
+                    className={`fas fa-microphone${
+                      getAudioState() ? "" : "-slash"
+                    }`}
+                  ></i>
                 </Button>
-                <Button 
+                <Button
                   className="control-btn end-call"
                   onClick={leaveChannel}
                   size="sm"
@@ -815,7 +899,13 @@ const PaymentModal = ({
     chatReady
   ) {
     return (
-      <Modal show={internalShow} onHide={handleHide} centered size="lg" className="chat-modal">
+      <Modal
+        show={internalShow}
+        onHide={handleHide}
+        centered
+        size="lg"
+        className="chat-modal"
+      >
         <Modal.Header className="chat-header">
           <div className="d-flex align-items-center">
             <div className="chat-icon me-2">
@@ -826,10 +916,7 @@ const PaymentModal = ({
           <Button variant="close" onClick={handleHide} />
         </Modal.Header>
         <Modal.Body style={{ height: "400px", overflow: "hidden" }}>
-          {sessionToken &&
-          bookingId &&
-          lawyer &&
-          currentUser?._id ? (
+          {sessionToken && bookingId && lawyer && currentUser?._id ? (
             <ChatBox
               sessionToken={sessionToken}
               chatDuration={15} // Fixed duration
@@ -1210,7 +1297,7 @@ const styles = `
 `;
 
 // Add styles to the document
-if (typeof document !== 'undefined') {
+if (typeof document !== "undefined") {
   const styleSheet = document.createElement("style");
   styleSheet.innerText = styles;
   document.head.appendChild(styleSheet);

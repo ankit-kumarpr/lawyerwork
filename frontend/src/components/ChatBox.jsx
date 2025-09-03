@@ -197,7 +197,10 @@ const ChatBox = ({
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const [useAgoraChat, setUseAgoraChat] = useState(true); // prefer Agora Chat; fall back to sockets if token endpoint fails
-  const chatPeerUsername = role === "lawyer" ? (client?._id || client?.name || "client") : (lawyer?.lawyerId || lawyer?._id || lawyer?.name || "lawyer");
+  const chatPeerUsername =
+    role === "lawyer"
+      ? client?._id || client?.name || "client"
+      : lawyer?.lawyerId || lawyer?._id || lawyer?.name || "lawyer";
 
   useEffect(() => {
     const token = sessionToken || sessionStorage.getItem("token");
@@ -213,7 +216,7 @@ const ChatBox = ({
     const fetchChatHistory = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:4000/lawapi/common/gethistory/${bookingId}`,
+          `https://lawyerwork.onrender.com/lawapi/common/gethistory/${bookingId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         if (!res.data.error && Array.isArray(res.data.data)) {
@@ -286,9 +289,13 @@ const ChatBox = ({
       try {
         const token = sessionToken || sessionStorage.getItem("token");
         const userData = JSON.parse(sessionStorage.getItem("userData") || "{}");
-        const username = (userData?._id || currentUser?._id || "user").toString();
+        const username = (
+          userData?._id ||
+          currentUser?._id ||
+          "user"
+        ).toString();
         const resp = await axios.post(
-          "http://localhost:4000/lawapi/common/agora-chat/token",
+          "https://lawyerwork.onrender.com/lawapi/common/agora-chat/token",
           { username },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -298,12 +305,20 @@ const ChatBox = ({
           username,
           accessToken,
           onMessage: (msg) => {
-            if (msg?.chatType === "singleChat" && (msg?.from === chatPeerUsername || msg?.to === chatPeerUsername)) {
+            if (
+              msg?.chatType === "singleChat" &&
+              (msg?.from === chatPeerUsername || msg?.to === chatPeerUsername)
+            ) {
               const incoming = {
                 id: msg.id,
                 sender: msg.from,
                 senderId: msg.from,
-                senderRole: msg.from === (userData?._id || currentUser?._id)?.toString() ? role : (role === "lawyer" ? "client" : "lawyer"),
+                senderRole:
+                  msg.from === (userData?._id || currentUser?._id)?.toString()
+                    ? role
+                    : role === "lawyer"
+                    ? "client"
+                    : "lawyer",
                 content: msg.msg,
                 type: "text",
                 bookingId,
@@ -378,7 +393,9 @@ const ChatBox = ({
 
     // Also send via Agora Chat SDK if available (best-effort)
     if (useAgoraChat) {
-      sendText({ to: chatPeerUsername.toString(), text: message }).catch(() => {});
+      sendText({ to: chatPeerUsername.toString(), text: message }).catch(
+        () => {}
+      );
     }
 
     setMessages((prev) => [...prev, msgData]);
@@ -388,12 +405,15 @@ const ChatBox = ({
     // Persist the message to the database in the background (non-blocking)
     axios
       .post(
-        "http://localhost:4000/lawapi/common/sendmessage",
+        "https://lawyerwork.onrender.com/lawapi/common/sendmessage",
         { bookingId, content: msgData.content, files: [] },
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .catch((err) => {
-        console.error("❌ Failed to save message", err.response?.data || err.message);
+        console.error(
+          "❌ Failed to save message",
+          err.response?.data || err.message
+        );
       });
   };
 
@@ -402,7 +422,10 @@ const ChatBox = ({
     if (useAgoraChat) {
       sendTyping({ to: chatPeerUsername.toString() }).catch(() => {});
     } else {
-      socketRef.current?.emit("typing", { bookingId, senderId: currentUser._id });
+      socketRef.current?.emit("typing", {
+        bookingId,
+        senderId: currentUser._id,
+      });
     }
   };
 
@@ -439,11 +462,17 @@ const ChatBox = ({
 
       try {
         await axios.post(
-          "http://localhost:4000/lawapi/common/sendmessage",
+          "https://lawyerwork.onrender.com/lawapi/common/sendmessage",
           {
             bookingId,
             content: `File: ${file.name}`,
-            files: [{ fileUrl: reader.result, fileType: file.type, fileName: file.name }],
+            files: [
+              {
+                fileUrl: reader.result,
+                fileType: file.type,
+                fileName: file.name,
+              },
+            ],
           },
           {
             headers: {
@@ -473,14 +502,16 @@ const ChatBox = ({
     list.forEach((msg) => {
       const key = formatDayKey(msg.timestamp);
       if (key !== currentKey) {
-        if (currentItems.length) groups.push({ key: currentKey, items: currentItems });
+        if (currentItems.length)
+          groups.push({ key: currentKey, items: currentItems });
         currentKey = key;
         currentItems = [msg];
       } else {
         currentItems.push(msg);
       }
     });
-    if (currentItems.length) groups.push({ key: currentKey, items: currentItems });
+    if (currentItems.length)
+      groups.push({ key: currentKey, items: currentItems });
     return groups;
   }, [messages]);
 
@@ -559,42 +590,86 @@ const ChatBox = ({
           </EmptyState>
         ) : groupedByDay.length === 0 && sessionStatus === "active" ? (
           <EmptyState>
-            <Typography variant="h5" color="primary">⚖️ Secure Legal Consultation</Typography>
-            <Typography variant="body1" mt={2}>This is a private, encrypted conversation.</Typography>
-            <Typography variant="body2">You can start the conversation now.</Typography>
+            <Typography variant="h5" color="primary">
+              ⚖️ Secure Legal Consultation
+            </Typography>
+            <Typography variant="body1" mt={2}>
+              This is a private, encrypted conversation.
+            </Typography>
+            <Typography variant="body2">
+              You can start the conversation now.
+            </Typography>
           </EmptyState>
         ) : (
           groupedByDay.map((group) => (
             <div key={group.key}>
               <Typography
                 variant="caption"
-                sx={{ display: "block", textAlign: "center", opacity: 0.7, mb: 1 }}
+                sx={{
+                  display: "block",
+                  textAlign: "center",
+                  opacity: 0.7,
+                  mb: 1,
+                }}
               >
                 {group.key}
               </Typography>
               {group.items.map((msg, index) => (
                 <MessageBubble
                   key={msg.id || msg._id || `${msg.timestamp}-${index}`}
-                  className={(msg.senderRole || (msg.senderId === currentUser._id ? role : (role === "lawyer" ? "client" : "lawyer"))) === role ? "sent" : "received"}
+                  className={
+                    (msg.senderRole ||
+                      (msg.senderId === currentUser._id
+                        ? role
+                        : role === "lawyer"
+                        ? "client"
+                        : "lawyer")) === role
+                      ? "sent"
+                      : "received"
+                  }
                 >
                   <MessageMeta>
                     <span>
                       {msg.senderRole === "lawyer" ? (
-                        <WorkIcon fontSize="inherit" sx={{ verticalAlign: "middle", mr: 0.5 }} />
+                        <WorkIcon
+                          fontSize="inherit"
+                          sx={{ verticalAlign: "middle", mr: 0.5 }}
+                        />
                       ) : (
-                        <PersonIcon fontSize="inherit" sx={{ verticalAlign: "middle", mr: 0.5 }} />
+                        <PersonIcon
+                          fontSize="inherit"
+                          sx={{ verticalAlign: "middle", mr: 0.5 }}
+                        />
                       )}
                       {msg.sender}
                     </span>
                     <span>
-                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      {new Date(msg.timestamp).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </span>
                   </MessageMeta>
                   {msg.type === "file" ? (
                     msg.fileType && msg.fileType.startsWith("image") ? (
-                      <img src={msg.content} alt={msg.filename} style={{ maxWidth: "100%", borderRadius: 8, marginTop: 6 }} />
+                      <img
+                        src={msg.content}
+                        alt={msg.filename}
+                        style={{
+                          maxWidth: "100%",
+                          borderRadius: 8,
+                          marginTop: 6,
+                        }}
+                      />
                     ) : (
-                      <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 6 }}>
+                      <div
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 8,
+                          marginTop: 6,
+                        }}
+                      >
                         <Button
                           variant="outlined"
                           size="small"
@@ -624,28 +699,47 @@ const ChatBox = ({
           {otherTyping && (
             <TypingIndicator>
               <CircularProgress size={12} thickness={5} />
-              <span>{role === "lawyer" ? "Client" : "Lawyer"} is typing...</span>
+              <span>
+                {role === "lawyer" ? "Client" : "Lawyer"} is typing...
+              </span>
             </TypingIndicator>
           )}
 
           {showEmojiPicker && (
             <EmojiPickerContainer ref={emojiPickerRef}>
-              <Picker data={data} onEmojiSelect={handleEmojiSelect} theme="light" previewPosition="none" navPosition="bottom" />
+              <Picker
+                data={data}
+                onEmojiSelect={handleEmojiSelect}
+                theme="light"
+                previewPosition="none"
+                navPosition="bottom"
+              />
             </EmojiPickerContainer>
           )}
 
           <InputContainer onSubmit={handleSendMessage}>
             <Tooltip title="Add emoji">
-              <IconButton onClick={() => setShowEmojiPicker((prev) => !prev)} aria-label="emoji">
+              <IconButton
+                onClick={() => setShowEmojiPicker((prev) => !prev)}
+                aria-label="emoji"
+              >
                 <EmojiIcon color="primary" />
               </IconButton>
             </Tooltip>
             <Tooltip title="Attach file">
-              <IconButton onClick={() => fileInputRef.current.click()} aria-label="attach-file">
+              <IconButton
+                onClick={() => fileInputRef.current.click()}
+                aria-label="attach-file"
+              >
                 <AttachFileIcon color="primary" />
               </IconButton>
             </Tooltip>
-            <FileInput type="file" ref={fileInputRef} onChange={handleFileUpload} accept="*/*" />
+            <FileInput
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept="*/*"
+            />
             <TextField
               fullWidth
               variant="outlined"
@@ -661,7 +755,12 @@ const ChatBox = ({
             />
             <Tooltip title="Send message">
               <span>
-                <IconButton type="submit" color="primary" disabled={!message.trim() || !socketConnected} aria-label="send">
+                <IconButton
+                  type="submit"
+                  color="primary"
+                  disabled={!message.trim() || !socketConnected}
+                  aria-label="send"
+                >
                   <SendIcon />
                 </IconButton>
               </span>
